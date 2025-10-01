@@ -29,9 +29,38 @@ def optimize_printing(print_jobs: List[Dict], constraints: Dict) -> Dict:
     printer = PrinterConstraints(**constraints)
 
     jobs.sort(key=lambda job: job.priority)
+
+    groups =[]
+    current_group=[]
+    current_volume=0
+
+    for job in jobs:
+        if current_volume + job.volume <= printer.max_volume and len(current_group) < printer.max_items:
+            current_group.append(job)
+            current_volume+= job.volume
+
+        else:
+            if current_group:
+                groups.append(current_group)
+            current_group=[job]
+            current_volume=job.volume
+        
+        
+    if current_group:
+        groups.append(current_group)
+    
+    print_order=[]
+    for group in groups:
+        for job in group:
+            print_order.append(job.id)
+    
+    total_time = 0
+    for group in groups:
+        group_time = max(job.print_time for job in group)
+        total_time += group_time
     return {
-        "print_order": None,
-        "total_time": None
+        "print_order": print_order,
+        "total_time": total_time
     }
 
 # Тестування
